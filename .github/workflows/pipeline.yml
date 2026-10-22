@@ -6,15 +6,26 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    
+    # VIP Pass use karne ke liye GitHub ko special permission chahiye
+    permissions:
+      contents: 'read'
+      id-token: 'write' 
     
     steps:
       - name: 1. Naya Code Check Karo (Checkout)
         uses: actions/checkout@v3
 
-      - name: 2. Docker Oven Tayar Karo (Build Image)
-        run: docker build -t ai-counselor-app .
+      - name: 2. GCP VIP Pass Se Login Karo (Auth)
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: 3. Success Message Print Karo
-        run: echo "Badhai Ho Chief! Aapka Docker App bilkul perfectly ban gaya hai."
+      - name: 3. GCP Connection Check Karo
+        run: gcloud projects list
+
+      - name: 4. Docker Oven Tayar Karo (Build Image)
+        run: docker build -t ai-counselor-app .
