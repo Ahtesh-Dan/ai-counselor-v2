@@ -9,7 +9,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # VIP Pass use karne ke liye GitHub ko special permission chahiye
+    
     permissions:
       contents: 'read'
       id-token: 'write' 
