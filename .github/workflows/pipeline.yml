@@ -9,23 +9,31 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    
     permissions:
       contents: 'read'
       id-token: 'write' 
     
     steps:
-      - name: 1. Naya Code Check Karo (Checkout)
+      - name: 1. Code Checkout
         uses: actions/checkout@v3
 
-      - name: 2. GCP VIP Pass Se Login Karo (Auth)
+      - name: 2. GCP VIP Pass Se Login (Auth)
         uses: google-github-actions/auth@v1
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: 3. GCP Connection Check Karo
-        run: gcloud projects list
+      - name: 3. Docker ko GCP ka rasta dikhao
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: 4. Docker Oven Tayar Karo (Build Image)
-        run: docker build -t ai-counselor-app .
+      - name: 4. Docker Image Build aur Push karo
+        run: |
+          docker build -t us-central1-docker.pkg.dev/project-4856d338-1a84-4689-948/ai-counselor-repo/ai-counselor-app:${{ github.sha }} .
+          docker push us-central1-docker.pkg.dev/project-4856d338-1a84-4689-948/ai-counselor-repo/ai-counselor-app:${{ github.sha }}
+
+      - name: 5. Cloud Run par App Live karo
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: ai-counselor-service
+          region: us-central1
+          image: us-central1-docker.pkg.dev/project-4856d338-1a84-4689-948/ai-counselor-repo/ai-counselor-app:${{ github.sha }}
